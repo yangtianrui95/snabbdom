@@ -48,7 +48,9 @@ export {thunk} from './thunk';
 export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
   let i: number, j: number, cbs = ({} as ModuleHooks);
 
+  // 从init中获取DOM API
   const api: DOMAPI = domApi !== undefined ? domApi : htmlDomApi;
+  console.log('cbs ' + cbs);
 
   for (i = 0; i < hooks.length; ++i) {
     cbs[hooks[i]] = [];
@@ -268,8 +270,10 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       for (let i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode);
       vnode.data.hook?.update?.(oldVnode, vnode);
     }
+    // 不是text
     if (isUndef(vnode.text)) {
       if (isDef(oldCh) && isDef(ch)) {
+          // 更新子节点
         if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue);
       } else if (isDef(ch)) {
         if (isDef(oldVnode.text)) api.setTextContent(elm, '');
@@ -288,15 +292,21 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     hook?.postpatch?.(oldVnode, vnode);
   }
 
+    /**
+     * oldVNode 旧的VNode，可以是Element
+     * vnode 新VNode
+     */
   return function patch(oldVnode: VNode | Element, vnode: VNode): VNode {
     let i: number, elm: Node, parent: Node;
     const insertedVnodeQueue: VNodeQueue = [];
     for (i = 0; i < cbs.pre.length; ++i) cbs.pre[i]();
 
+    // 如果旧节点是Element，那么创建一个新的vnode比较
     if (!isVnode(oldVnode)) {
       oldVnode = emptyNodeAt(oldVnode);
     }
 
+    // 如果两个节点相同的话，走patch流程
     if (sameVnode(oldVnode, vnode)) {
       patchVnode(oldVnode, vnode, insertedVnodeQueue);
     } else {
