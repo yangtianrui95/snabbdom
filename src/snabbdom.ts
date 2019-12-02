@@ -286,23 +286,31 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       for (let i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode);
       vnode.data.hook?.update?.(oldVnode, vnode);
     }
-    // 不是text
+    // vnode不是text节点
     if (isUndef(vnode.text)) {
+      // 如果都存在子节点，那么更新每一层子节点
       if (isDef(oldCh) && isDef(ch)) {
         // 更新子节点
         if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue);
       } else if (isDef(ch)) {
+        // 旧vnode没有子节点，新vnode有子节点的话，那么将新子节点逐一添加
+        // todo 啥意思？看看mdn
         if (isDef(oldVnode.text)) api.setTextContent(elm, '');
         addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
       } else if (isDef(oldCh)) {
+        // 旧vnode有子节点，新vnode没有
+        // 删除旧vnode的全部子节点
         removeVnodes(elm, oldCh, 0, oldCh.length - 1);
       } else if (isDef(oldVnode.text)) {
         api.setTextContent(elm, '');
       }
+      // vnode 是text节点
     } else if (oldVnode.text !== vnode.text) {
       if (isDef(oldCh)) {
+        // 移除所有的旧子节点，因为新的子节点是text
         removeVnodes(elm, oldCh, 0, oldCh.length - 1);
       }
+      // 更新text
       api.setTextContent(elm, vnode.text!);
     }
     hook?.postpatch?.(oldVnode, vnode);
@@ -327,6 +335,8 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       patchVnode(oldVnode, vnode, insertedVnodeQueue);
     } else {
       // 不是同一个vnode节点，走创建流程
+      // 非patch过程，先创建一个新的Element并放入document中
+      // 然后remove掉之前的Element
       elm = oldVnode.elm!;
       // 旧节点的parent
       parent = api.parentNode(elm);
