@@ -201,6 +201,13 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     }
   }
 
+  /**
+   * 对子节点进行下一层级的比较
+   * @param parentElm
+   * @param oldCh
+   * @param newCh
+   * @param insertedVnodeQueue
+   */
   function updateChildren(parentElm: Node,
                           oldCh: VNode[],
                           newCh: VNode[],
@@ -227,38 +234,51 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       } else if (newEndVnode == null) {
         newEndVnode = newCh[--newEndIdx];
       } else if (sameVnode(oldStartVnode, newStartVnode)) {
+        // 如果前两个是相同节点的话，进行patch
         patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue);
         oldStartVnode = oldCh[++oldStartIdx];
         newStartVnode = newCh[++newStartIdx];
       } else if (sameVnode(oldEndVnode, newEndVnode)) {
+        // 如果前两个是相同节点的话，进行patch
         patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue);
         oldEndVnode = oldCh[--oldEndIdx];
         newEndVnode = newCh[--newEndIdx];
       } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
+        // 如果前两个是相同节点的话，进行patch
         patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue);
         api.insertBefore(parentElm, oldStartVnode.elm!, api.nextSibling(oldEndVnode.elm!));
         oldStartVnode = oldCh[++oldStartIdx];
         newEndVnode = newCh[--newEndIdx];
       } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
+        // 如果前两个是相同节点的话，进行patch
         patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue);
         api.insertBefore(parentElm, oldEndVnode.elm!, oldStartVnode.elm!);
         oldEndVnode = oldCh[--oldEndIdx];
         newStartVnode = newCh[++newStartIdx];
       } else {
+        // 根据key进行比较
         if (oldKeyToIdx === undefined) {
+          // 如果旧节点key存在的话，根据存在的key生成一个map
           oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
         }
+        // 新节点是否在keymap中
         idxInOld = oldKeyToIdx[newStartVnode.key as string];
+        // 如果旧的idx不存在，证明该节点是新增的，那么直接在旧节点之前插入
         if (isUndef(idxInOld)) { // New element
           api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm!);
           newStartVnode = newCh[++newStartIdx];
         } else {
+          // 如果找到了旧节点
           elmToMove = oldCh[idxInOld];
+          // 属性不一样的话
           if (elmToMove.sel !== newStartVnode.sel) {
+            // 重新插入一个新节点在原来的位置
             api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm!);
           } else {
+            // 属性一样，进行patch流程
             patchVnode(elmToMove, newStartVnode, insertedVnodeQueue);
             oldCh[idxInOld] = undefined as any;
+            // 把旧的vnode插入到新的位置
             api.insertBefore(parentElm, elmToMove.elm!, oldStartVnode.elm!);
           }
           newStartVnode = newCh[++newStartIdx];
