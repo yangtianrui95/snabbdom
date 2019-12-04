@@ -150,6 +150,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     for (; startIdx <= endIdx; ++startIdx) {
       const ch = vnodes[startIdx];
       if (ch != null) {
+        // todo 如果before是null的话，是插入在dom的最前面还是最后面？
         api.insertBefore(parentElm, createElm(ch, insertedVnodeQueue), before);
       }
     }
@@ -272,11 +273,12 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
           elmToMove = oldCh[idxInOld];
           // 属性不一样的话
           if (elmToMove.sel !== newStartVnode.sel) {
-            // 重新插入一个新节点在原来的位置
+            // 重新插入一个新节点在原来的 节点前面
             api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm!);
           } else {
             // 属性一样，进行patch流程
             patchVnode(elmToMove, newStartVnode, insertedVnodeQueue);
+            // 原来的位置置空
             oldCh[idxInOld] = undefined as any;
             // 把旧的vnode插入到新的位置
             api.insertBefore(parentElm, elmToMove.elm!, oldStartVnode.elm!);
