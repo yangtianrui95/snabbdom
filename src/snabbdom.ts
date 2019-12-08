@@ -150,7 +150,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
     for (; startIdx <= endIdx; ++startIdx) {
       const ch = vnodes[startIdx];
       if (ch != null) {
-        // todo 如果before是null的话，是插入在dom的最前面还是最后面？
+        // 如果vnode是null的话，插入到最后面
         api.insertBefore(parentElm, createElm(ch, insertedVnodeQueue), before);
       }
     }
@@ -288,6 +288,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       }
     }
     if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
+      // 如果是新节点还没有遍历完
       if (oldStartIdx > oldEndIdx) {
         before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
         addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
@@ -326,7 +327,7 @@ export function init(modules: Array<Partial<Module>>, domApi?: DOMAPI) {
       } else if (isDef(oldVnode.text)) {
         api.setTextContent(elm, '');
       }
-      // vnode 是text节点
+      // 如果两个vnode仅是文字不同，那么更新文字
     } else if (oldVnode.text !== vnode.text) {
       if (isDef(oldCh)) {
         // 移除所有的旧子节点，因为新的子节点是text
